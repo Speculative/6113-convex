@@ -10,13 +10,20 @@
     "dev:init": "convex dev --once"
   },
   "dependencies": {
+    "@emotion/react": "^11.10.6",
+    "@emotion/styled": "^11.10.6",
+    "@mui/icons-material": "^5.11.11",
+    "@mui/material": "^5.11.15",
     "convex": "0.12.2",
+    "randomcolor": "^0.6.2",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@types/uuid": "^9.0.1",
     "@vitejs/plugin-react": "3.1.0",
-    "vite": "^4.1.4",
-    "npm-run-all": "^4.1.5"
+    "npm-run-all": "^4.1.5",
+    "vite": "^4.1.4"
   }
 }

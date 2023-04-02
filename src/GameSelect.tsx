@@ -12,86 +12,37 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  TableFooter,
   TablePagination,
   Divider,
   Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
-function useID() {
-  const [id, setID] = useState(localStorage.getItem("snake-id"));
-
-  useEffect(() => {
-    if (id === null) {
-      const newID = uuidv4();
-      localStorage.setItem("snake-id", newID);
-      setID(newID);
-    }
-  }, [id]);
-
-  return id;
-}
-
 type Game = {
+  id: string;
   name: string;
   creator: string;
 };
 
-export function GameSelect() {
-  const [pageNumber, setPageNumber] = useState(0);
+type GameSelectProps = {
+  gameList: Game[];
+  onAddGame: (game: Game) => void;
+  onSelectGame: (gameId: string) => void;
+};
 
-  // Fakes, replace with Convex
-  const [games, setGames] = useState<Game[]>([
-    {
-      name: "A Game",
-      creator: "Someone",
-    },
-    {
-      name: "Another Game 0",
-      creator: "Someone",
-    },
-    {
-      name: "Another Game 1",
-      creator: "Someone",
-    },
-    {
-      name: "Another Game 2",
-      creator: "Someone",
-    },
-    {
-      name: "Another Game 3",
-      creator: "Someone",
-    },
-    {
-      name: "Another Game 4",
-      creator: "Someone",
-    },
-    {
-      name: "Another Game 5",
-      creator: "Someone",
-    },
-    {
-      name: "Another Game 6",
-      creator: "Someone",
-    },
-    {
-      name: "Another Game 7",
-      creator: "Someone",
-    },
-    {
-      name: "Another Game 8",
-      creator: "Someone",
-    },
-    {
-      name: "Yet Another Game",
-      creator: "Someone",
-    },
-  ]);
+export function GameSelect(props: GameSelectProps) {
+  const [pageNumber, setPageNumber] = useState(0);
+  const [createGameShown, setCreateGameShown] = useState(false);
 
   // Derived
   const emptyRows =
-    pageNumber > 0 ? Math.max(0, (1 + pageNumber) * 5 - games.length) : 0;
+    pageNumber > 0
+      ? Math.max(0, (1 + pageNumber) * 5 - props.gameList.length)
+      : 0;
 
   return (
     <Box
@@ -141,7 +92,11 @@ export function GameSelect() {
               overflow: hidden;
             `}
           >
-            <Button variant="contained" startIcon={<AddIcon />}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setCreateGameShown(true)}
+            >
               Create game
             </Button>
             <Box
@@ -162,7 +117,7 @@ export function GameSelect() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {games
+                  {props.gameList
                     .slice(pageNumber * 5, pageNumber * 5 + 5)
                     .map((game, i) => (
                       <TableRow
@@ -170,6 +125,7 @@ export function GameSelect() {
                         sx={css`
                           cursor: pointer;
                         `}
+                        onClick={() => props.onSelectGame(game.id)}
                         hover
                       >
                         <TableCell align="left">{game.name}</TableCell>
@@ -191,11 +147,46 @@ export function GameSelect() {
               onPageChange={(_, newPage) => setPageNumber(newPage)}
               rowsPerPage={5}
               rowsPerPageOptions={[5]}
-              count={games.length}
+              count={props.gameList.length}
             />
           </Box>
         </Box>
       </Paper>
+      <Dialog open={createGameShown} onClose={() => setCreateGameShown(false)}>
+        <form
+          css={css`
+            display: contents;
+          `}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const form = new FormData(e.target as HTMLFormElement);
+
+            const newGameId = uuidv4();
+            setPageNumber(Math.floor(props.gameList.length / 5));
+            setCreateGameShown(false);
+            props.onAddGame({
+              name: form.get("lobby") as string,
+              creator: "Someone",
+              id: newGameId,
+            });
+            props.onSelectGame(newGameId);
+          }}
+        >
+          <DialogTitle>Create a lobby</DialogTitle>
+          <DialogContent>
+            <TextField
+              label="Lobby name"
+              name="lobby"
+              margin="dense"
+              fullWidth
+              autoFocus
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button type="submit">Create game</Button>
+          </DialogActions>
+        </form>
+      </Dialog>
     </Box>
   );
 }

@@ -16,7 +16,7 @@ import VideogameAssetIcon from "@mui/icons-material/VideogameAsset";
 
 import { generateColors } from "./color";
 
-type Player = {
+export type Player = {
   id: string;
   name: string;
 };
@@ -77,11 +77,10 @@ export function GameLobby(props: GameLobbyProps) {
       players.map((player, i) => [player.id, colors[i]])
     );
   }, [players, props.lobbyName]);
-  console.log(playerColors);
 
   return (
     <Box
-      sx={css`
+      css={css`
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -91,7 +90,7 @@ export function GameLobby(props: GameLobbyProps) {
       <Box>
         <Tooltip title="Leave game">
           <IconButton
-            sx={css`
+            css={css`
               margin-left: 1rem;
               margin-top: 1rem;
             `}
@@ -102,7 +101,7 @@ export function GameLobby(props: GameLobbyProps) {
         </Tooltip>
       </Box>
       <Box
-        sx={css`
+        css={css`
           padding: 2rem;
           display: flex;
           flex-grow: 1;
@@ -112,15 +111,15 @@ export function GameLobby(props: GameLobbyProps) {
       >
         <Typography variant="h2">{props.lobbyName}</Typography>
         <List
-          sx={css`
+          css={css`
             flex-grow: 1;
             overflow-y: auto;
           `}
         >
           {players.map((player) => (
-            <ListItem>
+            <ListItem key={player.id}>
               <ListItemText
-                sx={css`
+                css={css`
                   color: ${playerColors[player.id]};
                 `}
               >
@@ -130,7 +129,7 @@ export function GameLobby(props: GameLobbyProps) {
           ))}
         </List>
         <Button
-          sx={css`
+          css={css`
             margin-top: 1rem;
           `}
           variant="contained"

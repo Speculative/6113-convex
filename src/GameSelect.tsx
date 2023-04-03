@@ -22,10 +22,11 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
-type Game = {
+export type Game = {
   id: string;
   name: string;
   creator: string;
+  status: string;
 };
 
 type GameSelectProps = {
@@ -46,7 +47,7 @@ export function GameSelect(props: GameSelectProps) {
 
   return (
     <Box
-      sx={css`
+      css={css`
         width: 100%;
         height: 100%;
 
@@ -58,7 +59,7 @@ export function GameSelect(props: GameSelectProps) {
       `}
     >
       <Paper
-        sx={css`
+        css={css`
           display: flex;
           justify-content: center;
           width: 800px;
@@ -66,7 +67,7 @@ export function GameSelect(props: GameSelectProps) {
         `}
       >
         <Box
-          sx={css`
+          css={css`
             display: flex;
             flex-direction: column;
             width: 100%;
@@ -84,7 +85,7 @@ export function GameSelect(props: GameSelectProps) {
             Game Lobbies
           </h1>
           <Box
-            sx={css`
+            css={css`
               display: flex;
               flex-direction: column;
               width: 100%;
@@ -100,7 +101,7 @@ export function GameSelect(props: GameSelectProps) {
               Create game
             </Button>
             <Box
-              sx={css`
+              css={css`
                 margin-top: 1rem;
                 margin-bottom: 1rem;
               `}
@@ -122,7 +123,7 @@ export function GameSelect(props: GameSelectProps) {
                     .map((game, i) => (
                       <TableRow
                         key={`${game.name}-${i}`}
-                        sx={css`
+                        css={css`
                           cursor: pointer;
                         `}
                         onClick={() => props.onSelectGame(game.id)}
@@ -168,6 +169,7 @@ export function GameSelect(props: GameSelectProps) {
               name: form.get("lobby") as string,
               creator: "Someone",
               id: newGameId,
+              status: "lobby",
             });
             props.onSelectGame(newGameId);
           }}

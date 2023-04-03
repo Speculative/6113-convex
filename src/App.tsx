@@ -11,8 +11,9 @@ import {
   Stack,
 } from "@mui/material";
 
-import { GameSelect } from "./GameSelect";
-import { GameLobby, Game } from "./GameLobby";
+import { GameSelect, Game } from "./GameSelect";
+import { GameLobby } from "./GameLobby";
+import { GamePlay } from "./GamePlay";
 
 function useID() {
   const [id, setID] = useState(localStorage.getItem("snake-id"));
@@ -33,43 +34,53 @@ export default function App() {
 
   // Fakes, replace with Convex
   const [name, setName] = useState<string | null>(null);
-  const [currentGame, setCurrentGame] = useState<string | null>(null);
+  const [currentGameId, setCurrentGameId] = useState<string | null>(null);
   const [games, setGames] = useState<Game[]>([
     {
       id: "1",
       name: "A Game",
       creator: "Someone",
+      status: "lobby",
     },
     {
       id: "2",
       name: "Another Game 0",
       creator: "Someone",
+      status: "lobby",
     },
     {
       id: "3",
       name: "Another Game 1",
       creator: "Someone",
+      status: "lobby",
     },
     {
       id: "4",
       name: "Another Game 2",
       creator: "Someone",
+      status: "lobby",
     },
     {
       id: "5",
       name: "Another Game 3",
       creator: "Someone",
+      status: "lobby",
     },
     {
       id: "6",
       name: "Another Game 4",
       creator: "Someone",
+      status: "lobby",
     },
   ]);
 
-  return (
+  const currentGame = games.find((g) => g.id === currentGameId);
+
+  return currentGame && currentGame.status === "playing" ? (
+    <GamePlay />
+  ) : (
     <Box
-      sx={css`
+      css={css`
         width: 100%;
         height: 100%;
 
@@ -81,7 +92,7 @@ export default function App() {
       `}
     >
       <Paper
-        sx={css`
+        css={css`
           display: flex;
           justify-content: center;
           width: 800px;
@@ -90,7 +101,7 @@ export default function App() {
       >
         {name === null ? (
           <Box
-            sx={css`
+            css={css`
               display: flex;
               flex-direction: column;
               align-items: center;
@@ -120,7 +131,7 @@ export default function App() {
                   autoFocus
                 />
                 <Button
-                  sx={css`
+                  css={css`
                     margin-left: 1rem;
                   `}
                   variant="contained"
@@ -131,17 +142,28 @@ export default function App() {
               </Stack>
             </form>
           </Box>
-        ) : currentGame === null ? (
+        ) : currentGameId === null ? (
           <GameSelect
             gameList={games}
-            onSelectGame={(gameId) => setCurrentGame(gameId)}
+            onSelectGame={(gameId) => setCurrentGameId(gameId)}
             onAddGame={(game) => setGames([...games, game])}
           />
         ) : (
           <GameLobby
-            lobbyName={games.find((g) => g.id === currentGame).name}
-            onStartGame={() => {}}
-            onLeaveGame={() => setCurrentGame(null)}
+            lobbyName={games.find((g) => g.id === currentGameId)!.name}
+            onStartGame={() => {
+              const gameIndex = games.findIndex((g) => g.id === currentGameId);
+              const gameToStart = games[gameIndex];
+              setGames([
+                ...games.slice(0, gameIndex),
+                {
+                  ...gameToStart,
+                  status: "playing",
+                },
+                ...games.slice(gameIndex + 1),
+              ]);
+            }}
+            onLeaveGame={() => setCurrentGameId(null)}
           />
         )}
       </Paper>

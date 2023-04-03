@@ -7,7 +7,6 @@ function hashStringToRatio(input: string) {
     hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32bit integer
   }
-  console.log(hash);
 
   return hash / INT32_MAX;
 }

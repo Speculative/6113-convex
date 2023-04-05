@@ -11,7 +11,7 @@ import {
   Stack,
 } from "@mui/material";
 
-import { GameSelect, Game } from "./GameSelect";
+import { GameSelect, Game, Player } from "./GameSelect";
 import { GameLobby } from "./GameLobby";
 import { GamePlay } from "./GamePlay";
 
@@ -29,55 +29,55 @@ function useID() {
   return id;
 }
 
-export default function App() {
-  const id = useID();
+function convert(data: string | any[] | undefined): Game[] {
+  if (data === undefined || data.length == 0) {
+    return [];
+  } else {
+    var games = []
+    for (var i = 0; i < data.length; i++) {
+      var game = {
+        id: data[i].id,
+        name: data[i].name,
+        creator: data[i].creator,
+        status: data[i].status,
+        players : data[i].players? data[i].players.map((p: any) => {return {id: p.id, name: p.name, direction: p.direction, positions: p.positions}}) : []
+      }
+      games.push(game)
+    }
+    return games;
+  }
+}
 
-  // Fakes, replace with Convex
+
+export default function App() {
+  
+  const id = useID();
   const [name, setName] = useState<string | null>(null);
   const [currentGameId, setCurrentGameId] = useState<string | null>(null);
-  const [games, setGames] = useState<Game[]>([
-    {
-      id: "1",
-      name: "A Game",
-      creator: "Someone",
-      status: "lobby",
-    },
-    {
-      id: "2",
-      name: "Another Game 0",
-      creator: "Someone",
-      status: "lobby",
-    },
-    {
-      id: "3",
-      name: "Another Game 1",
-      creator: "Someone",
-      status: "lobby",
-    },
-    {
-      id: "4",
-      name: "Another Game 2",
-      creator: "Someone",
-      status: "lobby",
-    },
-    {
-      id: "5",
-      name: "Another Game 3",
-      creator: "Someone",
-      status: "lobby",
-    },
-    {
-      id: "6",
-      name: "Another Game 4",
-      creator: "Someone",
-      status: "lobby",
-    },
-  ]);
+  let temp = useQuery("listGames");
+  let data = convert(temp);
+  const [games, setGames] = useState<Game[]>(data);
+  useEffect(() => {
+    // console.log('Games data updated:', temp);
+    setGames(convert(temp));
+  }, [temp]);
 
+  const addPlayer = useMutation("addPlayer");
+  const createGame = useMutation("createGame");
+  const updateGameStatus = useMutation("updateGameStatus");
+  if (temp === undefined) {
+    return <div>Loading...</div>;
+  }
+  
   const currentGame = games.find((g) => g.id === currentGameId);
 
-  return currentGame && currentGame.status === "playing" ? (
-    <GamePlay />
+  return currentGame && currentGame.players.findIndex((p) => p.id === id) !== -1 
+    && currentGame.status === "playing" ? (
+    <GamePlay 
+      lobbyName={games.find((g) => g.id === currentGameId)!.name}
+      gameId = {currentGame.id}
+      player = {currentGame.players.find((p) => p.id === id)!}
+     />
   ) : (
     <Box
       css={css`
@@ -146,7 +146,12 @@ export default function App() {
           <GameSelect
             gameList={games}
             onSelectGame={(gameId) => setCurrentGameId(gameId)}
-            onAddGame={(game) => setGames([...games, game])}
+            onAddGame={(game) => {
+              createGame({game});
+              // immediately adding the game to the list to avoid waiting. 
+              // It's going to be refreshed with the same value anyway
+              setGames([...games, game]);
+            }}
           />
         ) : (
           <GameLobby
@@ -154,6 +159,25 @@ export default function App() {
             onStartGame={() => {
               const gameIndex = games.findIndex((g) => g.id === currentGameId);
               const gameToStart = games[gameIndex];
+              let newPlayer: Player = {
+                id: id? id : "unknown",
+                name: name,
+                direction: "east",
+                positions: [[0, 0]],
+              }
+
+              if (gameToStart.players.find((p) => p.id === newPlayer.id) === undefined) {
+                addPlayer({
+                  gameId: gameToStart.id,
+                  player: newPlayer,
+                });
+                gameToStart.players.push(newPlayer);
+              }
+              
+              updateGameStatus({
+                gameId: gameToStart.id,
+                gameStatus: "playing",
+              });
               setGames([
                 ...games.slice(0, gameIndex),
                 {
@@ -163,6 +187,7 @@ export default function App() {
                 ...games.slice(gameIndex + 1),
               ]);
             }}
+            players = {games.find((g) => g.id === currentGameId)!.players}
             onLeaveGame={() => setCurrentGameId(null)}
           />
         )}

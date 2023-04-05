@@ -15,62 +15,18 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import VideogameAssetIcon from "@mui/icons-material/VideogameAsset";
 
 import { generateColors } from "./color";
-
-export type Player = {
-  id: string;
-  name: string;
-};
+import { Player } from "./GameSelect";
 
 type GameLobbyProps = {
   lobbyName: string;
+  players: Player[];
   onLeaveGame: () => void;
   onStartGame: () => void;
 };
 
 export function GameLobby(props: GameLobbyProps) {
   // Fakes, replace with Convex
-  const [players, setPlayers] = useState<Player[]>([
-    {
-      id: uuidv4(),
-      name: "Jeff",
-    },
-    {
-      id: uuidv4(),
-      name: "Pavan",
-    },
-    {
-      id: uuidv4(),
-      name: "PJ",
-    },
-    {
-      id: uuidv4(),
-      name: "Sean",
-    },
-    {
-      id: uuidv4(),
-      name: "Dan",
-    },
-    {
-      id: uuidv4(),
-      name: "Tiff",
-    },
-    {
-      id: uuidv4(),
-      name: "Ian",
-    },
-    {
-      id: uuidv4(),
-      name: "Lavina",
-    },
-    {
-      id: uuidv4(),
-      name: "Nolm",
-    },
-    {
-      id: uuidv4(),
-      name: "Mick",
-    },
-  ]);
+  const [players, setPlayers] = useState<Player[]>(props.players);
   const playerColors = useMemo(() => {
     const colors = generateColors(players.length, props.lobbyName);
     return Object.fromEntries(
@@ -134,7 +90,9 @@ export function GameLobby(props: GameLobbyProps) {
           `}
           variant="contained"
           startIcon={<VideogameAssetIcon />}
-          onClick={() => props.onStartGame()}
+          onClick={() => {
+            console.log("clicked")
+            props.onStartGame()}}
         >
           Play game
         </Button>

@@ -27,7 +27,15 @@ export type Game = {
   name: string;
   creator: string;
   status: string;
+  players: Player[];
 };
+
+export type Player = {
+  id: string;
+  name: string;
+  direction: "north" | "east" | "south" | "west";
+  positions: [number, number][];
+}
 
 type GameSelectProps = {
   gameList: Game[];
@@ -170,6 +178,8 @@ export function GameSelect(props: GameSelectProps) {
               creator: "Someone",
               id: newGameId,
               status: "lobby",
+              //newly added game has no player. client will be added as player when they start playing
+              players : [],
             });
             props.onSelectGame(newGameId);
           }}

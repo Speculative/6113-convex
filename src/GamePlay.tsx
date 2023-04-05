@@ -13,7 +13,14 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import VideogameAssetIcon from "@mui/icons-material/VideogameAsset";
-import { Player } from "./GameLobby";
+import { Player } from "./GameSelect";
+import { useMutation } from "../convex/_generated/react";
+
+type GamePlayProps = {
+  lobbyName: string;
+  gameId: string;
+  player: Player;
+};
 
 type PlayerState = {
   direction: "north" | "south" | "east" | "west";
@@ -47,17 +54,14 @@ function useWindowDimensions() {
   return windowDimensions;
 }
 
-export function GamePlay() {
+export function GamePlay(props: GamePlayProps) {
   const [playerState, setPlayerState] = useState<PlayerState>({
-    direction: "east",
-    positions: [
-      [5, 5],
-      [5, 6],
-      [5, 7],
-      [5, 8],
-      [5, 9],
-    ],
+    direction: props.player.direction,
+    positions: props.player.positions,
   });
+  const updatePlayerMutation = useMutation("updatePlayerState");
+  let pid = props.player.id;
+  let gid = props.gameId;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -69,18 +73,34 @@ export function GamePlay() {
           playerState.direction === "north"
             ? [lastRow - 1, lastCol]
             : playerState.direction === "south"
-            ? [lastRow + 1, lastCol]
-            : playerState.direction === "west"
-            ? [lastRow, lastCol - 1]
-            : [lastRow, lastCol + 1];
+              ? [lastRow + 1, lastCol]
+              : playerState.direction === "west"
+                ? [lastRow, lastCol - 1]
+                : [lastRow, lastCol + 1];
+
+        // looping logic at the grid borders. TODO: make constants for dimensions
+        if (newPosition[0] > 29) {
+          newPosition[0] = 0;
+        }
+        if (newPosition[1] > 29) {
+          newPosition[1] = 0;
+        }
+        if (newPosition[0] < 0) {
+          newPosition[0] = 29;
+        }
+        if (newPosition[1] < 0) {
+          newPosition[1] = 29;
+        }
         newPositions.push(newPosition as [number, number]);
 
-        return {
+        let finalPlayerState = {
           ...playerState,
           positions: newPositions,
         };
+        updatePlayerMutation({ gameId: gid, playerId: pid, playerState: finalPlayerState });
+        return finalPlayerState;
       });
-    }, 300);
+    }, 500);
 
     return () => clearInterval(interval);
   }, []);
@@ -99,7 +119,7 @@ export function GamePlay() {
       `}
       tabIndex={0}
       onKeyDown={(e) => {
-        console.log(e);
+        // console.log(e);
         switch (e.code) {
           case "ArrowUp":
             setPlayerState({

@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useMutation, useQuery } from "../convex/_generated/react";
 import { css } from "@emotion/react";
-import { v4 as uuidv4 } from "uuid";
 import {
   Box,
   Button,
@@ -11,17 +11,14 @@ import {
   Typography,
   Tooltip,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import VideogameAssetIcon from "@mui/icons-material/VideogameAsset";
-import { Player } from "./GameSelect";
-import { useMutation } from "../convex/_generated/react";
+import { Doc } from "../convex/_generated/dataModel";
+
+import { useClientID } from "./id";
+import { generateColors } from "./color";
+import changeDirection from "../convex/changeDirection";
 
 type GamePlayProps = {
-  /*
-  lobbyName: string;
-  gameId: string;
-  player: Player;
-  */
+  lobby: Doc<"lobbies">;
 };
 
 // https://stackoverflow.com/questions/36862334/get-viewport-window-height-in-reactjs
@@ -50,61 +47,33 @@ function useWindowDimensions() {
   return windowDimensions;
 }
 
-export function GamePlay(props: GamePlayProps) {
-  return <div>GamePlay: TODO</div>;
-  /*
-  const [playerState, setPlayerState] = useState<PlayerState>({
-    direction: props.player.direction,
-    positions: props.player.positions,
-  });
-  const updatePlayerMutation = useMutation("updatePlayerState");
-  let pid = props.player.id;
-  let gid = props.gameId;
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPlayerState((playerState) => {
-        const newPositions = playerState.positions.slice(1);
-        const [lastRow, lastCol] =
-          playerState.positions[playerState.positions.length - 1];
-        const newPosition =
-          playerState.direction === "north"
-            ? [lastRow - 1, lastCol]
-            : playerState.direction === "south"
-              ? [lastRow + 1, lastCol]
-              : playerState.direction === "west"
-                ? [lastRow, lastCol - 1]
-                : [lastRow, lastCol + 1];
-
-        // looping logic at the grid borders. TODO: make constants for dimensions
-        if (newPosition[0] > 29) {
-          newPosition[0] = 0;
-        }
-        if (newPosition[1] > 29) {
-          newPosition[1] = 0;
-        }
-        if (newPosition[0] < 0) {
-          newPosition[0] = 29;
-        }
-        if (newPosition[1] < 0) {
-          newPosition[1] = 29;
-        }
-        newPositions.push(newPosition as [number, number]);
-
-        let finalPlayerState = {
-          ...playerState,
-          positions: newPositions,
-        };
-        updatePlayerMutation({ gameId: gid, playerId: pid, playerState: finalPlayerState });
-        return finalPlayerState;
-      });
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, []);
+export function GamePlay({ lobby }: GamePlayProps) {
+  const clientID = useClientID();
+  const localPlayer = useQuery("getPlayerByClientID", { clientID });
 
   const { width, height } = useWindowDimensions();
   const windowSize = Math.min(width, height);
+
+  const lobbyMembers = useQuery("listLobbyMembers", { lobby: lobby._id });
+
+  const playerColors = useMemo(() => {
+    if (!lobbyMembers) {
+      return {};
+    }
+
+    const colors = generateColors(lobbyMembers.length, lobby._id.toString());
+    return Object.fromEntries(
+      lobbyMembers.map((player, i) => [player._id, colors[i]])
+    );
+  }, [lobbyMembers, lobby]);
+
+  const gameState = useQuery("getGameState", { lobby: lobby._id });
+  const onChangeDirection = useMutation("changeDirection");
+  if (!gameState) {
+    return <div>Loading...</div>;
+  }
+
+  console.log(gameState.playerDirection);
 
   return (
     <div
@@ -116,30 +85,34 @@ export function GamePlay(props: GamePlayProps) {
         right: 0;
       `}
       tabIndex={0}
+      autoFocus
       onKeyDown={(e) => {
-        // console.log(e);
         switch (e.code) {
           case "ArrowUp":
-            setPlayerState({
-              ...playerState,
+            onChangeDirection({
+              lobby: lobby._id,
+              player: localPlayer._id,
               direction: "north",
             });
             break;
           case "ArrowDown":
-            setPlayerState({
-              ...playerState,
+            onChangeDirection({
+              lobby: lobby._id,
+              player: localPlayer._id,
               direction: "south",
             });
             break;
           case "ArrowRight":
-            setPlayerState({
-              ...playerState,
+            onChangeDirection({
+              lobby: lobby._id,
+              player: localPlayer._id,
               direction: "east",
             });
             break;
           case "ArrowLeft":
-            setPlayerState({
-              ...playerState,
+            onChangeDirection({
+              lobby: lobby._id,
+              player: localPlayer._id,
               direction: "west",
             });
             break;
@@ -153,7 +126,7 @@ export function GamePlay(props: GamePlayProps) {
           right: 0;
         `}
       >
-        {JSON.stringify(playerState)}
+        {gameState.ticks}
       </div>
       <div
         css={css`
@@ -184,19 +157,21 @@ export function GamePlay(props: GamePlayProps) {
             ></div>
           ))
         )}
-        {playerState.positions.map(([row, col]) => (
-          <div
-            key={`${row}-${col}`}
-            css={css`
-              grid-area: ${row + 1} / ${col + 1} / ${row + 2} / ${col + 2};
-              background: red;
-              width: 100%;
-              height: 100%;
-            `}
-          ></div>
-        ))}
+        {Array.from(gameState.playerPosition.entries()).flatMap(
+          ([playerID, positions]) =>
+            positions.map(({ row, col }) => (
+              <div
+                key={`${playerID}-${row}-${col}`}
+                css={css`
+                  grid-area: ${row + 1} / ${col + 1} / ${row + 2} / ${col + 2};
+                  background: ${playerColors[playerID]};
+                  width: 100%;
+                  height: 100%;
+                `}
+              ></div>
+            ))
+        )}
       </div>
     </div>
   );
-  */
 }

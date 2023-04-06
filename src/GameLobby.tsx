@@ -28,7 +28,7 @@ export function GameLobby({ lobby }: GameLobbyProps) {
 
   const lobbyMembers = useQuery("listLobbyMembers", { lobby: lobby._id });
   const onLeaveLobby = useMutation("leaveLobby");
-  const onStartGame = () => {};
+  const onStartGame = useMutation("startGame");
 
   const playerColors = useMemo(() => {
     if (!lobbyMembers) {
@@ -88,7 +88,7 @@ export function GameLobby({ lobby }: GameLobbyProps) {
           `}
         >
           {lobbyMembers.map((player) => (
-            <ListItem key={player._id}>
+            <ListItem key={player._id.toString()}>
               <ListItemText
                 css={css`
                   color: ${playerColors[player._id]};
@@ -107,7 +107,9 @@ export function GameLobby({ lobby }: GameLobbyProps) {
           startIcon={<VideogameAssetIcon />}
           disabled={lobby.creator.toString() !== localPlayer._id.toString()}
           onClick={() => {
-            onStartGame();
+            onStartGame({
+              lobby: lobby._id,
+            });
           }}
         >
           Play game

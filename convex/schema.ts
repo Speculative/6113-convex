@@ -20,4 +20,26 @@ export default defineSchema({
   })
     .index("by_player", ["player"])
     .index("by_lobby", ["lobby"]),
+  gameState: defineTable({
+    lobby: s.id("lobbies"),
+    playerPosition: s.map(
+      s.string(),
+      s.array(
+        s.object({
+          row: s.number(),
+          col: s.number(),
+        })
+      )
+    ),
+    playerDirection: s.map(
+      s.string(),
+      s.union(
+        s.literal("north"),
+        s.literal("south"),
+        s.literal("east"),
+        s.literal("west")
+      )
+    ),
+    ticks: s.number(),
+  }).index("by_lobby", ["lobby"]),
 });

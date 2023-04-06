@@ -28,7 +28,7 @@ export default function App() {
   console.log("CurrentLobby:", currentLobby);
 
   return currentLobby && currentLobby.status === "playing" ? (
-    <GamePlay />
+    <GamePlay lobby={currentLobby} />
   ) : (
     <Box
       css={css`

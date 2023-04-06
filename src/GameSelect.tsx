@@ -118,7 +118,7 @@ export function GameSelect() {
                     .slice(pageNumber * 5, pageNumber * 5 + 5)
                     .map((lobby, i) => (
                       <TableRow
-                        key={lobby._id}
+                        key={lobby._id.toString()}
                         css={css`
                           cursor: pointer;
                         `}

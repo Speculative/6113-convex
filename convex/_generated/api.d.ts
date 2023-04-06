@@ -10,17 +10,18 @@
  */
 
 import type { ApiFromModules } from "convex/api";
-import type * as addPlayer from "../addPlayer";
+import type * as changeDirection from "../changeDirection";
 import type * as createLobby from "../createLobby";
 import type * as getCurrentLobby from "../getCurrentLobby";
-import type * as getGame from "../getGame";
+import type * as getGameState from "../getGameState";
 import type * as getPlayerByClientID from "../getPlayerByClientID";
 import type * as joinLobby from "../joinLobby";
 import type * as leaveLobby from "../leaveLobby";
 import type * as listLobbies from "../listLobbies";
 import type * as listLobbyMembers from "../listLobbyMembers";
-import type * as listPlayers from "../listPlayers";
 import type * as setPlayerName from "../setPlayerName";
+import type * as startGame from "../startGame";
+import type * as tickGame from "../tickGame";
 import type * as updateGameStatus from "../updateGameStatus";
 import type * as updatePlayerState from "../updatePlayerState";
 
@@ -34,17 +35,18 @@ import type * as updatePlayerState from "../updatePlayerState";
  * `ConvexReactClient` to create app-specific types.
  */
 export type API = ApiFromModules<{
-  addPlayer: typeof addPlayer;
+  changeDirection: typeof changeDirection;
   createLobby: typeof createLobby;
   getCurrentLobby: typeof getCurrentLobby;
-  getGame: typeof getGame;
+  getGameState: typeof getGameState;
   getPlayerByClientID: typeof getPlayerByClientID;
   joinLobby: typeof joinLobby;
   leaveLobby: typeof leaveLobby;
   listLobbies: typeof listLobbies;
   listLobbyMembers: typeof listLobbyMembers;
-  listPlayers: typeof listPlayers;
   setPlayerName: typeof setPlayerName;
+  startGame: typeof startGame;
+  tickGame: typeof tickGame;
   updateGameStatus: typeof updateGameStatus;
   updatePlayerState: typeof updatePlayerState;
 }>;

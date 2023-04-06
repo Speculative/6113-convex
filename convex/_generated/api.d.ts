@@ -11,12 +11,16 @@
 
 import type { ApiFromModules } from "convex/api";
 import type * as addPlayer from "../addPlayer";
-import type * as createGame from "../createGame";
+import type * as createLobby from "../createLobby";
+import type * as getCurrentLobby from "../getCurrentLobby";
 import type * as getGame from "../getGame";
-import type * as listGames from "../listGames";
-import type * as listMessages from "../listMessages";
+import type * as getPlayerByClientID from "../getPlayerByClientID";
+import type * as joinLobby from "../joinLobby";
+import type * as leaveLobby from "../leaveLobby";
+import type * as listLobbies from "../listLobbies";
+import type * as listLobbyMembers from "../listLobbyMembers";
 import type * as listPlayers from "../listPlayers";
-import type * as sendMessage from "../sendMessage";
+import type * as setPlayerName from "../setPlayerName";
 import type * as updateGameStatus from "../updateGameStatus";
 import type * as updatePlayerState from "../updatePlayerState";
 
@@ -31,12 +35,16 @@ import type * as updatePlayerState from "../updatePlayerState";
  */
 export type API = ApiFromModules<{
   addPlayer: typeof addPlayer;
-  createGame: typeof createGame;
+  createLobby: typeof createLobby;
+  getCurrentLobby: typeof getCurrentLobby;
   getGame: typeof getGame;
-  listGames: typeof listGames;
-  listMessages: typeof listMessages;
+  getPlayerByClientID: typeof getPlayerByClientID;
+  joinLobby: typeof joinLobby;
+  leaveLobby: typeof leaveLobby;
+  listLobbies: typeof listLobbies;
+  listLobbyMembers: typeof listLobbyMembers;
   listPlayers: typeof listPlayers;
-  sendMessage: typeof sendMessage;
+  setPlayerName: typeof setPlayerName;
   updateGameStatus: typeof updateGameStatus;
   updatePlayerState: typeof updatePlayerState;
 }>;

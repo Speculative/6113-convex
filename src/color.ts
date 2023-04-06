@@ -14,6 +14,7 @@ function hashStringToRatio(input: string) {
 // https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
 const GOLDEN_RATIO_CONJUGATE = 2 / (Math.sqrt(5) + 1);
 export function generateColors(n: number, seed?: string): string[] {
+  console.log("color seed", seed);
   const colors = [];
   let num = (seed && hashStringToRatio(seed)) || Math.random();
   for (let i = 0; i < n; i++) {

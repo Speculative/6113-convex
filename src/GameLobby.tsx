@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
+import { useMutation, useQuery } from "../convex/_generated/react";
 import { css } from "@emotion/react";
-import { v4 as uuidv4 } from "uuid";
 import {
   Box,
   Button,
@@ -13,26 +13,37 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import VideogameAssetIcon from "@mui/icons-material/VideogameAsset";
+import { Doc } from "../convex/_generated/dataModel";
 
+import { useClientID } from "./id";
 import { generateColors } from "./color";
-import { Player } from "./GameSelect";
 
 type GameLobbyProps = {
-  lobbyName: string;
-  players: Player[];
-  onLeaveGame: () => void;
-  onStartGame: () => void;
+  lobby: Doc<"lobbies">;
 };
 
-export function GameLobby(props: GameLobbyProps) {
-  // Fakes, replace with Convex
-  const [players, setPlayers] = useState<Player[]>(props.players);
+export function GameLobby({ lobby }: GameLobbyProps) {
+  const clientID = useClientID();
+  const localPlayer = useQuery("getPlayerByClientID", { clientID });
+
+  const lobbyMembers = useQuery("listLobbyMembers", { lobby: lobby._id });
+  const onLeaveLobby = useMutation("leaveLobby");
+  const onStartGame = () => {};
+
   const playerColors = useMemo(() => {
-    const colors = generateColors(players.length, props.lobbyName);
+    if (!lobbyMembers) {
+      return {};
+    }
+
+    const colors = generateColors(lobbyMembers.length, lobby._id.toString());
     return Object.fromEntries(
-      players.map((player, i) => [player.id, colors[i]])
+      lobbyMembers.map((player, i) => [player._id, colors[i]])
     );
-  }, [players, props.lobbyName]);
+  }, [lobbyMembers, lobby]);
+
+  if (!lobbyMembers) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Box
@@ -50,7 +61,11 @@ export function GameLobby(props: GameLobbyProps) {
               margin-left: 1rem;
               margin-top: 1rem;
             `}
-            onClick={() => props.onLeaveGame()}
+            onClick={() =>
+              onLeaveLobby({
+                player: localPlayer._id,
+              })
+            }
           >
             <ArrowBackIcon />
           </IconButton>
@@ -65,18 +80,18 @@ export function GameLobby(props: GameLobbyProps) {
           overflow: hidden;
         `}
       >
-        <Typography variant="h2">{props.lobbyName}</Typography>
+        <Typography variant="h2">{lobby.lobbyName}</Typography>
         <List
           css={css`
             flex-grow: 1;
             overflow-y: auto;
           `}
         >
-          {players.map((player) => (
-            <ListItem key={player.id}>
+          {lobbyMembers.map((player) => (
+            <ListItem key={player._id}>
               <ListItemText
                 css={css`
-                  color: ${playerColors[player.id]};
+                  color: ${playerColors[player._id]};
                 `}
               >
                 {player.name}
@@ -90,9 +105,10 @@ export function GameLobby(props: GameLobbyProps) {
           `}
           variant="contained"
           startIcon={<VideogameAssetIcon />}
+          disabled={lobby.creator.toString() !== localPlayer._id.toString()}
           onClick={() => {
-            console.log("clicked")
-            props.onStartGame()}}
+            onStartGame();
+          }}
         >
           Play game
         </Button>

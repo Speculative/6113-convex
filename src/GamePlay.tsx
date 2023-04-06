@@ -17,15 +17,11 @@ import { Player } from "./GameSelect";
 import { useMutation } from "../convex/_generated/react";
 
 type GamePlayProps = {
+  /*
   lobbyName: string;
   gameId: string;
   player: Player;
-};
-
-type PlayerState = {
-  direction: "north" | "south" | "east" | "west";
-  // row, col
-  positions: [number, number][];
+  */
 };
 
 // https://stackoverflow.com/questions/36862334/get-viewport-window-height-in-reactjs
@@ -55,6 +51,8 @@ function useWindowDimensions() {
 }
 
 export function GamePlay(props: GamePlayProps) {
+  return <div>GamePlay: TODO</div>;
+  /*
   const [playerState, setPlayerState] = useState<PlayerState>({
     direction: props.player.direction,
     positions: props.player.positions,
@@ -200,4 +198,5 @@ export function GamePlay(props: GamePlayProps) {
       </div>
     </div>
   );
+  */
 }

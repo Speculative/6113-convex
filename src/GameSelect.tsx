@@ -22,36 +22,24 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
-export type Game = {
-  id: string;
-  name: string;
-  creator: string;
-  status: string;
-  players: Player[];
-};
+import { useClientID } from "./id";
 
-export type Player = {
-  id: string;
-  name: string;
-  direction: "north" | "east" | "south" | "west";
-  positions: [number, number][];
-}
-
-type GameSelectProps = {
-  gameList: Game[];
-  onAddGame: (game: Game) => void;
-  onSelectGame: (gameId: string) => void;
-};
-
-export function GameSelect(props: GameSelectProps) {
+export function GameSelect() {
+  const clientID = useClientID();
+  const localPlayer = useQuery("getPlayerByClientID", { clientID });
+  const lobbyList = useQuery("listLobbies");
+  const onCreateLobby = useMutation("createLobby");
+  const onSelectLobby = useMutation("joinLobby");
   const [pageNumber, setPageNumber] = useState(0);
   const [createGameShown, setCreateGameShown] = useState(false);
 
   // Derived
   const emptyRows =
-    pageNumber > 0
-      ? Math.max(0, (1 + pageNumber) * 5 - props.gameList.length)
-      : 0;
+    (lobbyList && Math.max(0, (1 + pageNumber) * 5 - lobbyList.length)) || 5;
+
+  if (!lobbyList) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Box
@@ -126,20 +114,27 @@ export function GameSelect(props: GameSelectProps) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {props.gameList
+                  {lobbyList
                     .slice(pageNumber * 5, pageNumber * 5 + 5)
-                    .map((game, i) => (
+                    .map((lobby, i) => (
                       <TableRow
-                        key={`${game.name}-${i}`}
+                        key={lobby._id}
                         css={css`
                           cursor: pointer;
                         `}
-                        onClick={() => props.onSelectGame(game.id)}
+                        onClick={() =>
+                          onSelectLobby({
+                            lobby: lobby._id,
+                            player: localPlayer._id,
+                          })
+                        }
                         hover
                       >
-                        <TableCell align="left">{game.name}</TableCell>
-                        <TableCell align="center">{game.creator}</TableCell>
-                        <TableCell align="right">4/5</TableCell>
+                        <TableCell align="left">{lobby.lobbyName}</TableCell>
+                        <TableCell align="center">
+                          {lobby.creatorName}
+                        </TableCell>
+                        <TableCell align="right">{lobby.playerCount}</TableCell>
                       </TableRow>
                     ))}
                   {emptyRows > 0 && (
@@ -156,7 +151,7 @@ export function GameSelect(props: GameSelectProps) {
               onPageChange={(_, newPage) => setPageNumber(newPage)}
               rowsPerPage={5}
               rowsPerPageOptions={[5]}
-              count={props.gameList.length}
+              count={lobbyList.length}
             />
           </Box>
         </Box>
@@ -170,18 +165,13 @@ export function GameSelect(props: GameSelectProps) {
             e.preventDefault();
             const form = new FormData(e.target as HTMLFormElement);
 
-            const newGameId = uuidv4();
-            setPageNumber(Math.floor(props.gameList.length / 5));
+            setPageNumber(Math.floor(lobbyList.length / 5));
             setCreateGameShown(false);
-            props.onAddGame({
-              name: form.get("lobby") as string,
-              creator: "Someone",
-              id: newGameId,
-              status: "lobby",
-              //newly added game has no player. client will be added as player when they start playing
-              players : [],
+            // Add game, set user in game
+            onCreateLobby({
+              lobbyName: form.get("lobby"),
+              creator: localPlayer._id,
             });
-            props.onSelectGame(newGameId);
           }}
         >
           <DialogTitle>Create a lobby</DialogTitle>

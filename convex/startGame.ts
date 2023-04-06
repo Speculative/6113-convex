@@ -23,6 +23,7 @@ export default mutation(
       lobby,
       playerPosition: new Map(),
       playerDirection: new Map(),
+      food: [],
       ticks: 0,
     };
     for (const member of members) {
@@ -36,6 +37,15 @@ export default mutation(
       console.log(initialDirection, initialPosition);
       initialState.playerDirection.set(member.toString(), initialDirection);
       initialState.playerPosition.set(member.toString(), [initialPosition]);
+    }
+
+    for (let i = 0; i < members.length; i++) {
+      // TODO: Bad, should check to make sure they're in different positions
+      // and not on players
+      initialState.food.push({
+        row: Math.floor(Math.random() * 30),
+        col: Math.floor(Math.random() * 30),
+      });
     }
 
     const gameState = await db.insert("gameState", initialState);
@@ -52,12 +62,12 @@ export const tick = internalMutation(
       return;
     }
 
+    let newFood = latestState.food;
     const tickPositions = new Map();
     for (const [member, positions] of latestState.playerPosition) {
       const direction = latestState.playerDirection.get(member.toString());
       const { row: lastRow, col: lastCol } = positions[positions.length - 1];
-      const newPositions = positions.slice(1);
-      const newPosition =
+      const nextPosition =
         direction === "north"
           ? { row: (lastRow - 1 + 30) % 30, col: lastCol }
           : direction === "south"
@@ -65,53 +75,37 @@ export const tick = internalMutation(
           : direction === "west"
           ? { row: lastRow, col: (lastCol - 1 + 30) % 30 }
           : { row: lastRow, col: (lastCol + 1) % 30 };
-      newPositions.push(newPosition);
+
+      const foodIndex = latestState.food.findIndex(
+        ({ row, col }) => row === nextPosition.row && col === nextPosition.col
+      );
+      let newPositions = positions.slice(1);
+      if (foodIndex !== -1) {
+        // Eat food, don't retract tail
+        newPositions = positions;
+
+        // Remove old food, create new food
+        newFood = [
+          ...newFood.slice(0, foodIndex),
+          ...newFood.slice(foodIndex + 1),
+        ];
+        newFood.push({
+          row: Math.floor(Math.random() * 30),
+          col: Math.floor(Math.random() * 30),
+        });
+      }
+
+      newPositions.push(nextPosition);
       tickPositions.set(member.toString(), newPositions);
     }
 
     await db.patch(gameState, {
       ticks: latestState.ticks + 1,
       playerPosition: tickPositions,
+      food: newFood,
     });
 
     // Schedule the next tick
     await scheduler.runAfter(300, "startGame:tick", { gameState });
   }
 );
-
-/*
-        const newPositions = playerState.positions.slice(1);
-        const [lastRow, lastCol] =
-          playerState.positions[playerState.positions.length - 1];
-        const newPosition =
-          playerState.direction === "north"
-            ? [lastRow - 1, lastCol]
-            : playerState.direction === "south"
-              ? [lastRow + 1, lastCol]
-              : playerState.direction === "west"
-                ? [lastRow, lastCol - 1]
-                : [lastRow, lastCol + 1];
-
-        // looping logic at the grid borders. TODO: make constants for dimensions
-        if (newPosition[0] > 29) {
-          newPosition[0] = 0;
-        }
-        if (newPosition[1] > 29) {
-          newPosition[1] = 0;
-        }
-        if (newPosition[0] < 0) {
-          newPosition[0] = 29;
-        }
-        if (newPosition[1] < 0) {
-          newPosition[1] = 29;
-        }
-        newPositions.push(newPosition as [number, number]);
-
-        let finalPlayerState = {
-          ...playerState,
-          positions: newPositions,
-        };
-        updatePlayerMutation({ gameId: gid, playerId: pid, playerState: finalPlayerState });
-        return finalPlayerState;
-      });
-      */

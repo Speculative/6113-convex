@@ -40,6 +40,12 @@ export default defineSchema({
         s.literal("west")
       )
     ),
+    food: s.array(
+      s.object({
+        row: s.number(),
+        col: s.number(),
+      })
+    ),
     ticks: s.number(),
   }).index("by_lobby", ["lobby"]),
 });

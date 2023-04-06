@@ -73,7 +73,7 @@ export function GamePlay({ lobby }: GamePlayProps) {
     return <div>Loading...</div>;
   }
 
-  console.log(gameState.playerDirection);
+  console.log(gameState.food);
 
   return (
     <div
@@ -171,6 +171,28 @@ export function GamePlay({ lobby }: GamePlayProps) {
               ></div>
             ))
         )}
+        {gameState.food.map(({ row, col }) => (
+          <div
+            key={`food-${row}-${col}`}
+            css={css`
+              grid-area: ${row + 1} / ${col + 1} / ${row + 2} / ${col + 2};
+              display: flex;
+              width: 100%;
+              height: 100%;
+              justify-content: center;
+              align-items: center;
+            `}
+          >
+            <div
+              css={css`
+                background: black;
+                border-radius: 100%;
+                width: 50%;
+                height: 50%;
+              `}
+            ></div>
+          </div>
+        ))}
       </div>
     </div>
   );
